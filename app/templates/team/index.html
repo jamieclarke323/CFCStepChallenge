@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+{% block title %}My Team - {{ challenge_name() }}{% endblock %}
+{% block content %}
+
+<div class="card team-hero">
+  <img class="team-logo" src="{{ team.image_url() }}" alt="{{ team.name }} logo">
+  <div class="team-hero-meta">
+    <h1>{{ team.name }}</h1>
+    <p class="hint">
+      Ranked <strong>#{{ team_rank }}</strong> of {{ total_teams }} teams · {{ stats.member_count }} member{{ 's' if stats.member_count != 1 }}
+    </p>
+  </div>
+</div>
+
+<div class="stat-grid">
+  <div class="stat-box">
+    <div class="value">{{ stats.team_total_steps | num }}</div>
+    <div class="label">Team total steps</div>
+  </div>
+  <div class="stat-box alt">
+    <div class="value">{{ stats.team_avg_per_active_day | avg }}</div>
+    <div class="label">Avg / member / active day</div>
+  </div>
+  <div class="stat-box muted">
+    <div class="value">#{{ team_rank }}</div>
+    <div class="label">Team ranking</div>
+  </div>
+  <div class="stat-box muted">
+    <div class="value">{{ stats.member_count }}</div>
+    <div class="label">Members</div>
+  </div>
+</div>
+
+<div class="card">
+  <h2>Team steps by day</h2>
+  <div class="chart-wrap"><canvas id="teamDailyChart"></canvas></div>
+</div>
+
+<div class="card">
+  <h2>Team members</h2>
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead>
+        <tr><th>Name</th><th>Total</th><th>Avg/day</th><th>Avg/week</th><th>Avg/month</th></tr>
+      </thead>
+      <tbody>
+        {% for m in stats.member_stats | sort(attribute='total_steps', reverse=true) %}
+        <tr class="{{ 'is-me' if m.user.id == current_user.id }}">
+          <td>
+            <div class="member-row">
+              <span class="member-badge">{{ m.user.first_name[0]|upper }}</span>
+              {{ m.user.display_name }}{{ ' (you)' if m.user.id == current_user.id }}
+            </div>
+          </td>
+          <td>{{ m.total_steps | num }}</td>
+          <td>{{ m.avg_per_active_day | avg }}</td>
+          <td>{{ m.avg_per_active_week | avg }}</td>
+          <td>{{ m.avg_per_active_month | avg }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="grid grid-2">
+  <div class="card">
+    <h2>Weekly team totals</h2>
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead><tr><th>Week</th><th>Total</th></tr></thead>
+        <tbody>
+          {% for w in stats.weekly_breakdown | reverse %}
+          <tr><td>{{ w.week_start | daterange(w.week_end) }}</td><td>{{ w.total | num }}</td></tr>
+          {% else %}
+          <tr><td colspan="2">No steps recorded yet.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="card">
+    <h2>Monthly team totals</h2>
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead><tr><th>Month</th><th>Total</th></tr></thead>
+        <tbody>
+          {% for m in stats.monthly_breakdown | reverse %}
+          <tr><td>{{ m.label }}</td><td>{{ m.total | num }}</td></tr>
+          {% else %}
+          <tr><td colspan="2">No steps recorded yet.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <h2>Edit team details</h2>
+  <p class="hint">Any team member can update the team name and image.</p>
+
+  <form method="post" action="{{ url_for('team.update_name') }}" class="grid grid-2" style="align-items:end;">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="form-field" style="margin-bottom:0;">
+      <label for="teamName">Team name</label>
+      <input type="text" id="teamName" name="name" maxlength="80" value="{{ team.name }}" required>
+    </div>
+    <button class="btn" type="submit">Save name</button>
+  </form>
+
+  <form method="post" action="{{ url_for('team.update_image') }}" enctype="multipart/form-data" class="grid grid-2" style="align-items:end; margin-top:16px;">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="form-field" style="margin-bottom:0;">
+      <label for="teamImage">Team image</label>
+      <input type="file" id="teamImage" name="image" accept="image/png,image/jpeg,image/gif,image/webp" required>
+      <div class="form-help">PNG, JPG, GIF or WEBP. It'll be cropped to a square automatically.</div>
+    </div>
+    <button class="btn" type="submit">Upload image</button>
+  </form>
+</div>
+
+<script id="teamChartData" type="application/json">{{ chart_data | tojson }}</script>
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='vendor/chart.umd.js') }}"></script>
+<script src="{{ url_for('static', filename='js/charts.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block title %}My Team - {{ challenge_name() }}{% endblock %}
+{% block content %}
+<div class="empty-state card">
+  <span class="emoji">👥</span>
+  <h2>You're not on a team yet</h2>
+  <p>Contact an administrator to be added to a team so you can compete together.</p>
+</div>
+{% endblock %}

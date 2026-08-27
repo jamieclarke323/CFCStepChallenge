@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block title %}Message Board - {{ challenge_name() }}{% endblock %}
+{% block content %}
+
+<h1>💬 Message Board</h1>
+<p class="hint">Encouragement, congratulations, banter - keep it friendly!</p>
+
+<div class="card post-form">
+  <form method="post" action="{{ url_for('messages.create_post') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="form-field">
+      <label for="postMessage">Share something with the team</label>
+      <textarea id="postMessage" name="message" maxlength="1000" required placeholder="Great work this week, everyone! 🎉"></textarea>
+    </div>
+    <button class="btn" type="submit">Post</button>
+  </form>
+</div>
+
+<div class="card">
+  {% for post in posts %}
+  <div class="post" id="post-{{ post.id }}">
+    <div class="post-head">
+      <span class="member-badge">{{ post.user.first_name[0]|upper }}</span>
+      <div>
+        <div class="post-author">{{ post.user.display_name }}</div>
+        <div class="post-time">{{ post.created_at | friendly_dt }}{{ ' (edited)' if post.is_edited }}</div>
+      </div>
+    </div>
+    <div class="post-message">{{ post.message }}</div>
+    <div class="post-actions">
+      <details>
+        <summary>Reply{{ ' (' ~ post.replies|rejectattr('is_deleted')|list|length ~ ')' if post.replies|rejectattr('is_deleted')|list|length else '' }}</summary>
+        <div class="reply-list">
+          {% for reply in post.replies if not reply.is_deleted %}
+          <div class="reply">
+            <div class="post-head">
+              <span class="member-badge">{{ reply.user.first_name[0]|upper }}</span>
+              <div>
+                <div class="post-author">{{ reply.user.display_name }}</div>
+                <div class="post-time">{{ reply.created_at | friendly_dt }}</div>
+              </div>
+            </div>
+            <div class="post-message">{{ reply.message }}</div>
+            {% if reply.user_id == current_user.id or current_user.is_admin %}
+            <form method="post" action="{{ url_for('messages.delete_reply', reply_id=reply.id) }}" class="confirm-form" data-confirm="Delete this reply?">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button type="submit" class="link-button" style="font-size:0.75rem;">Delete</button>
+            </form>
+            {% endif %}
+          </div>
+          {% endfor %}
+        </div>
+        <form method="post" action="{{ url_for('messages.create_reply', post_id=post.id) }}" class="reply-form">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <div class="form-field" style="margin-bottom:6px;">
+            <textarea name="message" maxlength="1000" required placeholder="Write a reply..."></textarea>
+          </div>
+          <button class="btn small" type="submit">Reply</button>
+        </form>
+      </details>
+      {% if post.user_id == current_user.id or current_user.is_admin %}
+      <form method="post" action="{{ url_for('messages.delete_post', post_id=post.id) }}" class="confirm-form" data-confirm="Delete this post?">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button type="submit" class="link-button">Delete</button>
+      </form>
+      {% endif %}
+    </div>
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <span class="emoji">💬</span>
+    <p>No posts yet - be the first to say something!</p>
+  </div>
+  {% endfor %}
+</div>
+
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/messages.js') }}"></script>
+{% endblock %}

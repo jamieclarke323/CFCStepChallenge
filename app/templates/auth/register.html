@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block title %}Create account - {{ challenge_name() }}{% endblock %}
+{% block bodyclass %}no-chrome{% endblock %}
+{% block content %}
+<div class="auth-page">
+  <div class="auth-card">
+    <div class="brand-lockup">👣🏆</div>
+    <h1>Join the challenge</h1>
+    <p class="hint">Create your account to start logging steps.</p>
+    <form method="post" novalidate>
+      {{ form.hidden_tag() }}
+      <div class="grid grid-2">
+        <div class="form-field">
+          {{ form.first_name.label }}
+          {{ form.first_name(placeholder="Jamie") }}
+          {% for e in form.first_name.errors %}<div class="field-errors">{{ e }}</div>{% endfor %}
+        </div>
+        <div class="form-field">
+          {{ form.last_name.label }}
+          {{ form.last_name(placeholder="Clarke") }}
+          {% for e in form.last_name.errors %}<div class="field-errors">{{ e }}</div>{% endfor %}
+        </div>
+      </div>
+      <div class="form-field">
+        {{ form.email.label }}
+        {{ form.email(placeholder="you@company.com", autocomplete="username") }}
+        {% for e in form.email.errors %}<div class="field-errors">{{ e }}</div>{% endfor %}
+      </div>
+      <div class="grid grid-2">
+        <div class="form-field">
+          {{ form.password.label }}
+          {{ form.password(placeholder="At least 8 characters", autocomplete="new-password") }}
+          {% for e in form.password.errors %}<div class="field-errors">{{ e }}</div>{% endfor %}
+        </div>
+        <div class="form-field">
+          {{ form.confirm_password.label }}
+          {{ form.confirm_password(placeholder="Repeat password", autocomplete="new-password") }}
+          {% for e in form.confirm_password.errors %}<div class="field-errors">{{ e }}</div>{% endfor %}
+        </div>
+      </div>
+      <div class="form-field">
+        {{ form.team_id.label }}
+        {{ form.team_id() }}
+        {% for e in form.team_id.errors %}<div class="field-errors">{{ e }}</div>{% endfor %}
+      </div>
+      <div class="form-field">
+        {{ form.new_team_name.label }}
+        {{ form.new_team_name(placeholder="e.g. The Striders") }}
+        {% for e in form.new_team_name.errors %}<div class="field-errors">{{ e }}</div>{% endfor %}
+      </div>
+      {{ form.submit(class="btn block") }}
+    </form>
+    <div class="auth-switch">
+      Already have an account? <a href="{{ url_for('auth.login') }}">Log in</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

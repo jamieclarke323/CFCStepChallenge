@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% block title %}Record Steps - {{ challenge_name() }}{% endblock %}
+{% block content %}
+
+<div class="stat-grid">
+  <div class="stat-box">
+    <div class="value" id="statTotalSteps">{{ stats.total_steps | num }}</div>
+    <div class="label">Total steps ever</div>
+  </div>
+  <div class="stat-box alt">
+    <div class="value" id="statAvgActiveDay">{{ stats.avg_per_active_day | avg }}</div>
+    <div class="label">Avg / active day</div>
+  </div>
+  <div class="stat-box muted">
+    <div class="value" id="statActiveDays">{{ stats.active_days }}</div>
+    <div class="label">Days recorded</div>
+  </div>
+  <div class="stat-box muted">
+    <div class="value">{{ stats.calendar_days_elapsed }}</div>
+    <div class="label">Days in challenge</div>
+  </div>
+</div>
+
+<div class="card" id="calendarCard"
+     data-editable-min="{{ stats.effective_start.isoformat() }}"
+     data-today="{{ today().isoformat() }}">
+  <div class="calendar-header">
+    <a class="calendar-nav-btn" href="{{ url_for('steps.index', year=prev_year, month=prev_month) }}" aria-label="Previous month">‹</a>
+    <h2 id="monthLabel">{{ month_label }}</h2>
+    {% if can_go_next %}
+      <a class="calendar-nav-btn" href="{{ url_for('steps.index', year=next_year, month=next_month) }}" aria-label="Next month">›</a>
+    {% else %}
+      <button class="calendar-nav-btn" disabled aria-label="No future months">›</button>
+    {% endif %}
+  </div>
+
+  <div class="calendar-grid">
+    {% for dow in ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'] %}
+      <div class="calendar-dow">{{ dow }}</div>
+    {% endfor %}
+    {% for week in weeks %}
+      {% for day in week %}
+        {% set classes = ["calendar-day"] %}
+        {% if not day.in_month %}{% set _ = classes.append("out-of-month") %}{% endif %}
+        {% if day.has_record %}{% set _ = classes.append("recorded") %}{% endif %}
+        {% if day.is_today %}{% set _ = classes.append("today") %}{% endif %}
+        {% if day.is_future %}{% set _ = classes.append("future") %}{% endif %}
+        {% if day.is_before_start %}{% set _ = classes.append("before-start") %}{% endif %}
+        <button
+          type="button"
+          class="{{ classes | join(' ') }}"
+          data-date="{{ day.iso }}"
+          data-editable="{{ 'true' if day.editable else 'false' }}"
+          data-steps="{{ day.steps if day.steps is not none else '' }}"
+          {% if not day.editable %}disabled{% endif %}
+        >
+          <span class="day-num">{{ day.day }}</span>
+          {% if day.has_record %}<span class="day-steps">{{ day.steps | num }}</span>{% endif %}
+        </button>
+      {% endfor %}
+    {% endfor %}
+  </div>
+
+  <div class="calendar-legend">
+    <span><span class="swatch" style="background:#d9f5e6"></span>Recorded</span>
+    <span><span class="swatch" style="background:var(--color-primary)"></span>Selected</span>
+    <span><span class="swatch" style="background:var(--color-bg); box-shadow:0 0 0 2px var(--color-primary) inset"></span>Today</span>
+    <span><span class="swatch" style="background:var(--color-bg); opacity:0.5"></span>Not editable</span>
+  </div>
+
+  <div class="entry-panel" id="entryPanel" hidden>
+    <div class="entry-date" id="entryDate"></div>
+    <div class="entry-row">
+      <div class="form-field">
+        <label for="stepsInput">Step count</label>
+        <input type="number" id="stepsInput" inputmode="numeric" min="0" max="{{ max_steps }}" step="1" placeholder="e.g. 8500">
+        <div class="form-help">Whole numbers only, 0 to {{ max_steps | num }}.</div>
+        <div class="field-errors" id="stepsError" hidden></div>
+      </div>
+      <button class="btn" id="saveStepsBtn" type="button" style="margin-top: 26px;">Save</button>
+    </div>
+    <div id="saveConfirmation" class="flash flash-success" style="display:none; margin-top:12px;"></div>
+  </div>
+  <p class="hint" id="noSelectionHint">Tap a day above to record or edit your steps.</p>
+</div>
+
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/steps.js') }}"></script>
+{% endblock %}

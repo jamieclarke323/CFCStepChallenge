@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>{% block title %}{{ challenge_name() }}{% endblock %}</title>
+  <meta name="csrf-token" content="{{ csrf_token() }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>👣</text></svg>">
+  {% block head %}{% endblock %}
+</head>
+<body class="{% block bodyclass %}{% endblock %}">
+{% if current_user.is_authenticated %}
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="{{ url_for('steps.index') }}">👣 <span>{{ challenge_name() }}</span></a>
+      <nav class="desktop-nav">
+        <a href="{{ url_for('steps.index') }}" class="{{ 'active' if request.endpoint == 'steps.index' }}">👣 Record Steps</a>
+        <a href="{{ url_for('progress.index') }}" class="{{ 'active' if request.endpoint == 'progress.index' }}">📈 My Progress</a>
+        <a href="{{ url_for('team.index') }}" class="{{ 'active' if request.endpoint == 'team.index' }}">👥 My Team</a>
+        <a href="{{ url_for('leaderboard.index') }}" class="{{ 'active' if request.endpoint == 'leaderboard.index' }}">🏆 Leaderboard</a>
+        <a href="{{ url_for('messages.index') }}" class="{{ 'active' if request.endpoint == 'messages.index' }}">💬 Message Board</a>
+      </nav>
+      <div class="account-menu">
+        <button type="button" class="account-toggle" id="accountToggle" aria-haspopup="true" aria-expanded="false">
+          <span class="avatar">{{ current_user.first_name[0]|upper }}</span>
+        </button>
+        <div class="account-dropdown" id="accountDropdown" hidden>
+          <div class="account-name">{{ current_user.full_name }}</div>
+          <div class="account-email">{{ current_user.email }}</div>
+          <form action="{{ url_for('auth.logout') }}" method="post">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="link-button">Log out</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </header>
+{% endif %}
+
+<main class="page-content">
+  {% include "partials/flash.html" %}
+  {% block content %}{% endblock %}
+</main>
+
+{% if current_user.is_authenticated %}
+  <nav class="bottom-nav">
+    <a href="{{ url_for('steps.index') }}" class="{{ 'active' if request.endpoint == 'steps.index' }}">
+      <span class="icon">👣</span><span class="label">Steps</span>
+    </a>
+    <a href="{{ url_for('progress.index') }}" class="{{ 'active' if request.endpoint == 'progress.index' }}">
+      <span class="icon">📈</span><span class="label">Progress</span>
+    </a>
+    <a href="{{ url_for('team.index') }}" class="{{ 'active' if request.endpoint == 'team.index' }}">
+      <span class="icon">👥</span><span class="label">Team</span>
+    </a>
+    <a href="{{ url_for('leaderboard.index') }}" class="{{ 'active' if request.endpoint == 'leaderboard.index' }}">
+      <span class="icon">🏆</span><span class="label">Ranks</span>
+    </a>
+    <a href="{{ url_for('messages.index') }}" class="{{ 'active' if request.endpoint == 'messages.index' }}">
+      <span class="icon">💬</span><span class="label">Board</span>
+    </a>
+  </nav>
+{% endif %}
+
+<script src="{{ url_for('static', filename='js/nav.js') }}"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

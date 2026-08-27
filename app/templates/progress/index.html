@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% block title %}My Progress - {{ challenge_name() }}{% endblock %}
+{% block content %}
+
+<div class="card">
+  <h1>My Progress</h1>
+  <p class="hint">
+    {% if my_rank %}You're currently <strong>#{{ my_rank }}</strong> of {{ total_participants }} participants.{% endif %}
+  </p>
+</div>
+
+<div class="stat-grid">
+  <div class="stat-box">
+    <div class="value">{{ stats.total_steps | num }}</div>
+    <div class="label">Total steps ever</div>
+  </div>
+  <div class="stat-box alt">
+    <div class="value">{{ stats.avg_per_active_day | avg }}</div>
+    <div class="label">Avg steps / active day</div>
+  </div>
+  <div class="stat-box muted">
+    <div class="value">{{ stats.avg_per_active_week | avg }}</div>
+    <div class="label">Avg steps / active week</div>
+  </div>
+  <div class="stat-box muted">
+    <div class="value">{{ stats.avg_per_active_month | avg }}</div>
+    <div class="label">Avg steps / active month</div>
+  </div>
+</div>
+
+<div class="card">
+  <p class="hint">
+    "Active day/week/month" averages only count periods where you actually logged steps, so gaps
+    aren't silently treated as zero. For reference, your average across every calendar day since you
+    joined (gaps counted as zero) is <strong>{{ stats.avg_per_calendar_day | avg }}</strong> steps/day,
+    over {{ stats.calendar_days_elapsed }} calendar days vs {{ stats.active_days }} days actually recorded.
+  </p>
+</div>
+
+<div class="card">
+  <h2>Daily breakdown</h2>
+  <div class="chart-wrap"><canvas id="dailyChart"></canvas></div>
+</div>
+
+<div class="grid grid-2">
+  <div class="card">
+    <h2>Weekly breakdown</h2>
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead><tr><th>Week</th><th>Total</th><th>Avg/day</th><th>Trend</th></tr></thead>
+        <tbody>
+          {% for w in stats.weekly_breakdown | reverse %}
+          <tr>
+            <td>{{ w.week_start | daterange(w.week_end) }}</td>
+            <td>{{ w.total | num }}</td>
+            <td>{{ w.avg_daily | avg }}</td>
+            <td>
+              {% set idx = stats.weekly_breakdown.index(w) %}
+              {% if idx > 0 %}
+                {% set prev = stats.weekly_breakdown[idx - 1] %}
+                {% if w.avg_daily > prev.avg_daily %}<span class="trend-up">▲ improving</span>
+                {% elif w.avg_daily < prev.avg_daily %}<span class="trend-down">▼ declining</span>
+                {% else %}<span class="trend-flat">– steady</span>{% endif %}
+              {% else %}<span class="trend-flat">–</span>{% endif %}
+            </td>
+          </tr>
+          {% else %}
+          <tr><td colspan="4">No steps recorded yet.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Monthly breakdown</h2>
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead><tr><th>Month</th><th>Total</th><th>Avg/day</th><th>Trend</th></tr></thead>
+        <tbody>
+          {% for m in stats.monthly_breakdown | reverse %}
+          <tr>
+            <td>{{ m.label }}</td>
+            <td>{{ m.total | num }}</td>
+            <td>{{ m.avg_daily | avg }}</td>
+            <td>
+              {% set idx = stats.monthly_breakdown.index(m) %}
+              {% if idx > 0 %}
+                {% set prev = stats.monthly_breakdown[idx - 1] %}
+                {% if m.avg_daily > prev.avg_daily %}<span class="trend-up">▲ improving</span>
+                {% elif m.avg_daily < prev.avg_daily %}<span class="trend-down">▼ declining</span>
+                {% else %}<span class="trend-flat">– steady</span>{% endif %}
+              {% else %}<span class="trend-flat">–</span>{% endif %}
+            </td>
+          </tr>
+          {% else %}
+          <tr><td colspan="4">No steps recorded yet.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script id="chartData" type="application/json">{{ chart_data | tojson }}</script>
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='vendor/chart.umd.js') }}"></script>
+<script src="{{ url_for('static', filename='js/charts.js') }}"></script>
+{% endblock %}

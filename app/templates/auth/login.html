@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}Log in - {{ challenge_name() }}{% endblock %}
+{% block bodyclass %}no-chrome{% endblock %}
+{% block content %}
+<div class="auth-page">
+  <div class="auth-card">
+    <div class="brand-lockup">👣🏆</div>
+    <h1>Welcome back</h1>
+    <p class="hint">Log in to {{ challenge_name() }}.</p>
+    <form method="post" novalidate>
+      {{ form.hidden_tag() }}
+      <div class="form-field">
+        {{ form.email.label }}
+        {{ form.email(placeholder="you@company.com", autocomplete="username") }}
+        {% for e in form.email.errors %}<div class="field-errors">{{ e }}</div>{% endfor %}
+      </div>
+      <div class="form-field">
+        {{ form.password.label }}
+        {{ form.password(placeholder="Your password", autocomplete="current-password") }}
+        {% for e in form.password.errors %}<div class="field-errors">{{ e }}</div>{% endfor %}
+      </div>
+      {{ form.submit(class="btn block") }}
+    </form>
+    <div class="auth-switch">
+      New here? <a href="{{ url_for('auth.register') }}">Create an account</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

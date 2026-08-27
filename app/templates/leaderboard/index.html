@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}Leaderboard - {{ challenge_name() }}{% endblock %}
+{% block content %}
+
+<h1>🏆 Leaderboard</h1>
+
+<div class="lb-toggle">
+  <a href="{{ url_for('leaderboard.index', view='teams') }}" class="{{ 'active' if view == 'teams' }}">Teams</a>
+  <a href="{{ url_for('leaderboard.index', view='individuals') }}" class="{{ 'active' if view == 'individuals' }}">Individuals</a>
+</div>
+
+{% if view == 'teams' %}
+  {% for row in team_rankings %}
+  <div class="card lb-team-card">
+    <div class="lb-rank {{ 'top3' if row.rank <= 3 }}">#{{ row.rank }}</div>
+    <img class="lb-team-logo" src="{{ row.team.image_url() }}" alt="{{ row.team.name }} logo">
+    <div class="lb-team-body">
+      <div class="lb-team-name">{{ row.team.name }}{{ ' (your team)' if current_user.team_id == row.team.id }}</div>
+      <div class="lb-team-stats">
+        {{ row.team_total_steps | num }} total steps · {{ row.team_avg_per_active_day | avg }} avg/member/day · {{ row.member_count }} member{{ 's' if row.member_count != 1 }}
+      </div>
+      <div class="lb-members">
+        {% for m in row.member_stats %}<strong>{{ m.user.display_name }}</strong>{{ ' · ' if not loop.last }}{% endfor %}
+      </div>
+    </div>
+  </div>
+  {% else %}
+  <div class="empty-state card"><span class="emoji">🏳️</span><p>No teams yet.</p></div>
+  {% endfor %}
+{% else %}
+  <div class="card" style="padding:0;">
+    {% for row in individual_rankings %}
+    <div class="lb-indiv-row {{ 'is-me' if row.user.id == current_user.id }}">
+      <div class="lb-rank {{ 'top3' if row.rank <= 3 }}" style="width:30px;">#{{ row.rank }}</div>
+      <div>
+        <div class="lb-indiv-name">{{ row.user.display_name }}{{ ' (you)' if row.user.id == current_user.id }}</div>
+        <div class="lb-indiv-team">{{ row.user.team.name if row.user.team else 'No team' }}</div>
+      </div>
+      <div class="lb-indiv-total">
+        {{ row.total_steps | num }}
+        <div class="lb-indiv-avg">{{ row.avg_per_active_day | avg }} avg/day</div>
+      </div>
+    </div>
+    {% else %}
+    <div class="empty-state"><span class="emoji">🏃</span><p>No participants yet.</p></div>
+    {% endfor %}
+  </div>
+{% endif %}
+
+{% endblock %}
