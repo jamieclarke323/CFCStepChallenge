@@ -4,6 +4,19 @@
 
 <h1>🏆 Leaderboard</h1>
 
+<form method="get" class="lb-filter" style="display:flex;gap:8px;align-items:center;margin-bottom:12px;">
+  <input type="hidden" name="view" value="{{ view }}">
+  <label style="font-weight:700;">Period:</label>
+  <select name="period">
+    <option value="">All time</option>
+    <option value="month" {% if period == 'month' %}selected{% endif %}>Monthly</option>
+  </select>
+  <label>Month:
+    <input type="month" name="month" value="{{ selected_month or '' }}">
+  </label>
+  <button class="btn" type="submit">Apply</button>
+</form>
+
 <div class="lb-toggle">
   <a href="{{ url_for('leaderboard.index', view='teams') }}" class="{{ 'active' if view == 'teams' }}">Teams</a>
   <a href="{{ url_for('leaderboard.index', view='individuals') }}" class="{{ 'active' if view == 'individuals' }}">Individuals</a>
@@ -15,13 +28,16 @@
     <div class="lb-rank {{ 'top3' if row.rank <= 3 }}">#{{ row.rank }}</div>
     <img class="lb-team-logo" src="{{ row.team.image_url() }}" alt="{{ row.team.name }} logo">
     <div class="lb-team-body">
-      <div class="lb-team-name">{{ row.team.name }}{{ ' (your team)' if current_user.team_id == row.team.id }}</div>
-      <div class="lb-team-stats">
-        {{ row.team_total_steps | num }} total steps · {{ row.team_avg_per_active_day | avg }} avg/member/day · {{ row.member_count }} member{{ 's' if row.member_count != 1 }}
+      <div class="lb-team-left">
+        <div class="lb-team-name">{{ row.team.name }}{{ ' (your team)' if current_user.team_id == row.team.id }}</div>
+        <div class="lb-team-stats">
+          {{ row.team_total_steps | num }} total steps · {{ row.member_count }} member{{ 's' if row.member_count != 1 }}
+        </div>
+        <div class="lb-members">
+          {% for m in row.member_stats %}<strong>{{ m.user.display_name }}</strong>{{ ' · ' if not loop.last }}{% endfor %}
+        </div>
       </div>
-      <div class="lb-members">
-        {% for m in row.member_stats %}<strong>{{ m.user.display_name }}</strong>{{ ' · ' if not loop.last }}{% endfor %}
-      </div>
+      <div class="lb-team-average">{{ row.team_avg_per_active_day | avg }} avg/day</div>
     </div>
   </div>
   {% else %}

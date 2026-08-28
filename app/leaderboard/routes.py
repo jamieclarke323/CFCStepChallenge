@@ -14,12 +14,28 @@ def index():
     if view not in ("teams", "individuals"):
         view = "teams"
 
-    team_rankings = get_team_rankings()
-    individual_rankings = get_individual_rankings()
+    # Period filter support: e.g. ?period=month&month=2026-08
+    period = request.args.get("period")
+    month_str = request.args.get("month")
+    year = None
+    month = None
+    if period == "month" and month_str:
+        try:
+            parts = month_str.split("-")
+            year = int(parts[0])
+            month = int(parts[1])
+        except Exception:
+            year = None
+            month = None
+
+    team_rankings = get_team_rankings(period=period, year=year, month=month)
+    individual_rankings = get_individual_rankings(period=period, year=year, month=month)
 
     return render_template(
         "leaderboard/index.html",
         view=view,
         team_rankings=team_rankings,
         individual_rankings=individual_rankings,
+        period=period,
+        selected_month=month_str,
     )

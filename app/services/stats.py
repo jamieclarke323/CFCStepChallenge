@@ -196,13 +196,41 @@ def _tie_break_key(total_steps, avg_per_active_day, joined_at, entity_id):
     return (-total_steps, -avg_per_active_day, joined_at, entity_id)
 
 
-def get_individual_rankings():
-    """Return users ranked by total steps, with the tie-break rule applied."""
+def get_individual_rankings(period=None, year=None, month=None):
+    """Return users ranked by total steps, with the tie-break rule applied.
+
+    If `period` == 'month' and `year`/`month` are provided, compute totals
+    and averages only for that calendar month. Otherwise falls back to the
+    full-history ranking (existing behaviour).
+    """
     users = User.query.filter_by(account_status="active").all()
     rows = []
-    for u in users:
-        stats = compute_user_stats(u)
-        rows.append({**stats, "user": u})
+
+    # If monthly view requested compute stats for that month only
+    if period == "month" and year and month:
+        start = date(int(year), int(month), 1)
+        if int(month) == 12:
+            next_month = date(int(year) + 1, 1, 1)
+        else:
+            next_month = date(int(year), int(month) + 1, 1)
+        end = next_month - timedelta(days=1)
+
+        for u in users:
+            q = StepRecord.query.filter(
+                StepRecord.user_id == u.id,
+                StepRecord.date >= start,
+                StepRecord.date <= end,
+            ).order_by(StepRecord.date.asc())
+            records = q.all()
+            total_steps = sum(r.step_count for r in records)
+            active_days = len(records)
+            avg_per_active_day = total_steps / active_days if active_days else 0
+            rows.append({"user": u, "total_steps": total_steps, "avg_per_active_day": avg_per_active_day, "active_days": active_days})
+    else:
+        for u in users:
+            stats = compute_user_stats(u)
+            rows.append({**stats, "user": u})
+
     rows.sort(
         key=lambda r: _tie_break_key(
             r["total_steps"], r["avg_per_active_day"], r["user"].date_joined, r["user"].id
@@ -213,21 +241,69 @@ def get_individual_rankings():
     return rows
 
 
-def get_team_rankings():
-    """Return teams ranked by total steps, with the tie-break rule applied."""
+def get_team_rankings(period=None, year=None, month=None):
+    """Return teams ranked by total steps, with the tie-break rule applied.
+
+    Supports monthly aggregation when `period=='month'` and `year`/`month`
+    are supplied. Returns the same structure as before so templates need no
+    changes beyond using the values which may be month-scoped.
+    """
     teams = Team.query.all()
     rows = []
-    for t in teams:
-        stats = compute_team_stats(t)
-        avg_of_active_days = (
-            sum(s["avg_per_active_day"] for s in stats["member_stats"]) / len(stats["member_stats"])
-            if stats["member_stats"]
-            else 0
-        )
-        rows.append({**stats, "team": t, "_tiebreak_avg": avg_of_active_days})
+
+    # Monthly range if requested
+    if period == "month" and year and month:
+        start = date(int(year), int(month), 1)
+        if int(month) == 12:
+            next_month = date(int(year) + 1, 1, 1)
+        else:
+            next_month = date(int(year), int(month) + 1, 1)
+        end = next_month - timedelta(days=1)
+
+        for t in teams:
+            # Build member stats scoped to range
+            member_stats = []
+            for m in t.members:
+                q = StepRecord.query.filter(
+                    StepRecord.user_id == m.id,
+                    StepRecord.date >= start,
+                    StepRecord.date <= end,
+                ).order_by(StepRecord.date.asc())
+                records = q.all()
+                total_steps = sum(r.step_count for r in records)
+                active_days = len(records)
+                avg_per_active_day = total_steps / active_days if active_days else 0
+                member_stats.append({"user": m, "total_steps": total_steps, "active_days": active_days, "avg_per_active_day": avg_per_active_day})
+
+            team_total = sum(s["total_steps"] for s in member_stats)
+            active_member_stats = [s for s in member_stats if s["active_days"] > 0]
+            team_avg_per_active_day = (
+                sum(s["avg_per_active_day"] for s in active_member_stats) / len(active_member_stats)
+                if active_member_stats
+                else 0
+            )
+
+            rows.append({
+                "team": t,
+                "member_stats": member_stats,
+                "member_count": len(member_stats),
+                "team_total_steps": team_total,
+                "team_avg_per_active_day": team_avg_per_active_day,
+            })
+    else:
+        for t in teams:
+            stats = compute_team_stats(t)
+            avg_of_active_days = (
+                sum(s["avg_per_active_day"] for s in stats["member_stats"]) / len(stats["member_stats"]) 
+                if stats["member_stats"]
+                else 0
+            )
+            rows.append({**stats, "team": t, "_tiebreak_avg": avg_of_active_days})
+
+    # Ensure deterministic ordering with same tie-break rule
     rows.sort(
         key=lambda r: _tie_break_key(
-            r["team_total_steps"], r["_tiebreak_avg"], r["team"].date_created, r["team"].id
+            r.get("team_total_steps", 0), r.get("team_avg_per_active_day", r.get("_tiebreak_avg", 0)), r["team"].date_created, r["team"].id
         )
     )
     for i, r in enumerate(rows, start=1):

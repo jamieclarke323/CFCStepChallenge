@@ -379,7 +379,9 @@ table.data-table tr.is-me { background: #fff3ec; }
 }
 .lb-rank.top3 { color: var(--color-primary); }
 .lb-team-logo { width: 48px; height: 48px; border-radius: 12px; object-fit: cover; flex-shrink: 0; background: var(--color-bg); }
-.lb-team-body { flex: 1; min-width: 0; }
+.lb-team-body { flex: 1; min-width: 0; display: flex; align-items: center; justify-content: space-between; }
+.lb-team-left { flex: 1; min-width: 0; }
+.lb-team-average { font-weight: 800; text-align: right; color: var(--color-text); min-width: 110px; }
 .lb-team-name { font-weight: 800; font-size: 1.02rem; }
 .lb-team-stats { color: var(--color-text-muted); font-size: 0.82rem; margin: 2px 0 6px; }
 .lb-members { font-size: 0.82rem; color: var(--color-text-muted); }
