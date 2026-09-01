@@ -346,6 +346,14 @@ table.data-table tr.is-me { background: #fff3ec; }
 
 .chart-wrap { position: relative; height: 260px; }
 
+/* Background videos used site-wide */
+.progress-bg-videos, .site-bg-videos { position: fixed; inset: 0; pointer-events: none; z-index: 1; }
+.bg-vid { position: fixed; top: 8%; width: auto; max-width: 420px; height: 84vh; object-fit: cover; opacity: 0; transition: opacity 600ms ease; pointer-events: none; }
+.bg-vid.visible { opacity: 0.85; }
+.bg-vid#bg-video-left, .bg-vid#site-bg-left { left: 2%; transform: translateZ(0); }
+.bg-vid#bg-video-right, .bg-vid#site-bg-right { right: 2%; transform: translateZ(0); }
+.page-content { position: relative; z-index: 2; }
+
 /* ---------- Team page ---------- */
 .team-hero { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
 .team-logo { width: 84px; height: 84px; border-radius: 20px; object-fit: cover; background: var(--color-bg); }

@@ -10,6 +10,14 @@
   {% block head %}{% endblock %}
 </head>
 <body class="{% block bodyclass %}{% endblock %}">
+  <div class="site-bg-videos">
+    <video id="site-bg-left" class="bg-vid" preload="auto" playsinline muted loop autoplay controls>
+      <source src="{{ url_for('static', filename='media/steps-down.mp4') }}" type="video/mp4">
+    </video>
+    <video id="site-bg-right" class="bg-vid" preload="auto" playsinline muted loop autoplay controls>
+      <source src="{{ url_for('static', filename='media/steps-up.mp4') }}" type="video/mp4">
+    </video>
+  </div>
 {% if current_user.is_authenticated %}
   <header class="topbar">
     <div class="topbar-inner">
@@ -64,6 +72,7 @@
 {% endif %}
 
 <script src="{{ url_for('static', filename='js/nav.js') }}"></script>
+<script src="{{ url_for('static', filename='js/bg-videos.js') }}"></script>
 {% block scripts %}{% endblock %}
 </body>
 </html>
