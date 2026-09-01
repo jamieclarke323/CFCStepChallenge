@@ -196,6 +196,15 @@ def _tie_break_key(total_steps, avg_per_active_day, joined_at, entity_id):
     return (-total_steps, -avg_per_active_day, joined_at, entity_id)
 
 
+def _apply_team_multiplier(row):
+    """Apply the persisted team multiplier to its leaderboard score."""
+    multiplier = row["team"].multiplier or 1.0
+    row["team_total_steps"] *= multiplier
+    row["team_avg_per_active_day"] *= multiplier
+    row["multiplier_percent"] = round((multiplier - 1) * 100)
+    return row
+
+
 def get_individual_rankings(period=None, year=None, month=None):
     """Return users ranked by total steps, with the tie-break rule applied.
 
@@ -283,13 +292,13 @@ def get_team_rankings(period=None, year=None, month=None):
                 else 0
             )
 
-            rows.append({
+            rows.append(_apply_team_multiplier({
                 "team": t,
                 "member_stats": member_stats,
                 "member_count": len(member_stats),
                 "team_total_steps": team_total,
                 "team_avg_per_active_day": team_avg_per_active_day,
-            })
+            }))
     else:
         for t in teams:
             stats = compute_team_stats(t)
@@ -298,7 +307,7 @@ def get_team_rankings(period=None, year=None, month=None):
                 if stats["member_stats"]
                 else 0
             )
-            rows.append({**stats, "team": t, "_tiebreak_avg": avg_of_active_days})
+            rows.append(_apply_team_multiplier({**stats, "team": t, "_tiebreak_avg": avg_of_active_days}))
 
     # Ensure deterministic ordering with same tie-break rule
     rows.sort(

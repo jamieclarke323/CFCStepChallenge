@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}Team Multipliers - {{ challenge_name() }}{% endblock %}
+{% block content %}
+
+<div class="card">
+  <h1>Team multipliers</h1>
+  <p class="hint">A multiplier adjusts a team's historical and future leaderboard scores. A value of 1.00 makes no adjustment.</p>
+</div>
+
+<div class="card" style="padding:0;">
+  {% for team in teams %}
+  <form method="post" class="admin-multiplier-row">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <input type="hidden" name="team_id" value="{{ team.id }}">
+    <strong>{{ team.name }}</strong>
+    <label>
+      <span class="sr-only">Multiplier for {{ team.name }}</span>
+      <input type="number" name="multiplier" value="{{ '%.2f' | format(team.multiplier) }}" min="0" max="10" step="0.01" inputmode="decimal" required>
+    </label>
+    <button class="btn small" type="submit">Save</button>
+  </form>
+  {% endfor %}
+</div>
+{% endblock %}

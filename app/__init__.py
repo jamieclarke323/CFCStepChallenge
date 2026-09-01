@@ -3,6 +3,7 @@ import os
 from datetime import timedelta
 
 from flask import Flask
+from sqlalchemy import inspect, text
 
 from .config import Config
 from .extensions import db, login_manager, csrf, migrate, limiter
@@ -20,6 +21,15 @@ def create_app(config_class=Config):
     login_manager.init_app(app)
     csrf.init_app(app)
     limiter.init_app(app)
+
+    with app.app_context():
+        # Existing SQLite databases predate the team multiplier column.
+        # Fresh databases receive it from the model definition.
+        if "teams" in inspect(db.engine).get_table_names():
+            columns = {column["name"] for column in inspect(db.engine).get_columns("teams")}
+            if "multiplier" not in columns:
+                db.session.execute(text("ALTER TABLE teams ADD COLUMN multiplier FLOAT NOT NULL DEFAULT 1.0"))
+                db.session.commit()
 
     login_manager.login_view = "auth.login"
     login_manager.login_message = "Please log in to continue."

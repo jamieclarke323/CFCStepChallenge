@@ -13,6 +13,7 @@ class Team(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(80), unique=True, nullable=False)
     image_filename = db.Column(db.String(255), nullable=True)
+    multiplier = db.Column(db.Float, default=1.0, nullable=False)
     date_created = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
 
     members = db.relationship("User", back_populates="team", order_by="User.first_name")

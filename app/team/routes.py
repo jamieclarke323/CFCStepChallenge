@@ -1,4 +1,6 @@
 """My Team page: overview, member stats, and editing team name/image."""
+from decimal import Decimal, InvalidOperation
+
 from flask import Blueprint, render_template, request, redirect, url_for, flash, abort
 from flask_login import login_required, current_user
 
@@ -8,6 +10,34 @@ from ..services.stats import compute_team_stats, get_team_rankings
 from ..services.images import save_team_image, InvalidImageError
 
 team_bp = Blueprint("team", __name__)
+
+
+@team_bp.route("/admin/team-multipliers", methods=["GET", "POST"])
+@login_required
+def manage_multipliers():
+    """Admin-only control for team-level scoring multipliers."""
+    if not current_user.is_admin:
+        abort(403)
+
+    if request.method == "POST":
+        team = db.session.get(Team, request.form.get("team_id", type=int))
+        raw_multiplier = (request.form.get("multiplier") or "").strip()
+        try:
+            multiplier = Decimal(raw_multiplier)
+        except InvalidOperation:
+            multiplier = None
+
+        if not team:
+            flash("That team could not be found.", "error")
+        elif multiplier is None or not multiplier.is_finite() or not Decimal("0") <= multiplier <= Decimal("10"):
+            flash("Enter a multiplier between 0.00 and 10.00.", "error")
+        else:
+            team.multiplier = float(multiplier)
+            db.session.commit()
+            flash(f"{team.name} multiplier updated to {multiplier:.2f}.", "success")
+        return redirect(url_for("team.manage_multipliers"))
+
+    return render_template("team/manage_multipliers.html", teams=Team.query.order_by(Team.name).all())
 
 
 def _team_chart_payload(stats):
