@@ -1,4 +1,4 @@
-# Workplace Step Challenge
+# Steptember
 
 A mobile-first web app for running a workplace step-count challenge: teams,
 daily step tracking, personal/team progress dashboards, a leaderboard, and a

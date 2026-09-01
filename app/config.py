@@ -28,7 +28,7 @@ class Config:
     MAX_CONTENT_LENGTH = int(os.environ.get("MAX_UPLOAD_MB", "5")) * 1024 * 1024
     TEAM_IMAGE_SIZE = (512, 512)
 
-    CHALLENGE_NAME = os.environ.get("CHALLENGE_NAME", "Workplace Step Challenge")
+    CHALLENGE_NAME = os.environ.get("CHALLENGE_NAME", "Steptember")
     CHALLENGE_START_DATE = _parse_date(os.environ.get("CHALLENGE_START_DATE"))
     CHALLENGE_END_DATE = _parse_date(os.environ.get("CHALLENGE_END_DATE"))
     MAX_PLAUSIBLE_DAILY_STEPS = int(os.environ.get("MAX_PLAUSIBLE_DAILY_STEPS", "100000"))
