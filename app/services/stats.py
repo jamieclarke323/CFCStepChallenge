@@ -26,12 +26,18 @@ from ..models import StepRecord, User, Team
 
 
 def effective_start_date(user):
-    """The earliest date this user may have steps counted towards stats."""
+    """The earliest date this user may have steps counted towards stats.
+
+    Users are allowed to backfill a single day before their join date (e.g.
+    someone who joins on 2 September can still log steps for 1 September),
+    but never earlier than that, and never before the challenge start date.
+    """
     challenge_start = current_app.config.get("CHALLENGE_START_DATE")
     join_date = user.date_joined.date() if user.date_joined else date.today()
+    backfill_limit = join_date - timedelta(days=1)
     if challenge_start:
-        return max(challenge_start, join_date)
-    return join_date
+        return max(challenge_start, backfill_limit)
+    return backfill_limit
 
 
 def effective_end_date():
