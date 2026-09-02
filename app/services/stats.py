@@ -202,6 +202,17 @@ def _tie_break_key(total_steps, avg_per_active_day, joined_at, entity_id):
     return (-total_steps, -avg_per_active_day, joined_at, entity_id)
 
 
+def _team_rank_key(avg_per_active_day, team):
+    """Deterministic sort key for the team leaderboard.
+
+    Teams are ranked on the same average-steps-per-active-day figure that is
+    displayed on the leaderboard (i.e. after any team multiplier is applied),
+    highest first. Equal averages are broken by team name ascending
+    (case-insensitive) and finally by id so the order never looks random.
+    """
+    return (-avg_per_active_day, (team.name or "").casefold(), team.id)
+
+
 def _apply_team_multiplier(row):
     """Apply the persisted team multiplier to its leaderboard score."""
     multiplier = row["team"].multiplier or 1.0
@@ -257,7 +268,7 @@ def get_individual_rankings(period=None, year=None, month=None):
 
 
 def get_team_rankings(period=None, year=None, month=None):
-    """Return teams ranked by total steps, with the tie-break rule applied.
+    """Return teams ranked by average steps per active day, highest first.
 
     Supports monthly aggregation when `period=='month'` and `year`/`month`
     are supplied. Returns the same structure as before so templates need no
@@ -315,12 +326,8 @@ def get_team_rankings(period=None, year=None, month=None):
             )
             rows.append(_apply_team_multiplier({**stats, "team": t, "_tiebreak_avg": avg_of_active_days}))
 
-    # Ensure deterministic ordering with same tie-break rule
-    rows.sort(
-        key=lambda r: _tie_break_key(
-            r.get("team_total_steps", 0), r.get("team_avg_per_active_day", r.get("_tiebreak_avg", 0)), r["team"].date_created, r["team"].id
-        )
-    )
+    # Ensure deterministic ordering: highest average steps first.
+    rows.sort(key=lambda r: _team_rank_key(r.get("team_avg_per_active_day", 0), r["team"]))
     for i, r in enumerate(rows, start=1):
         r["rank"] = i
     return rows
