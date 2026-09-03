@@ -25,19 +25,48 @@ from ..extensions import db
 from ..models import StepRecord, User, Team
 
 
+def earliest_recordable_date(user, today=None):
+    """The earliest date this user may still submit/edit a step record for.
+
+    Users get a rolling backfill window (45 days by default, configurable via
+    ``STEP_BACKFILL_DAYS``) so that someone joining late can enter the steps
+    they have already walked. Long-standing members keep their existing
+    window back to the day before they joined. Never earlier than the
+    challenge start date. Future dates are always rejected by the caller.
+    """
+    today = today or date.today()
+    challenge_start = current_app.config.get("CHALLENGE_START_DATE")
+    join_date = user.date_joined.date() if user.date_joined else today
+    backfill_days = current_app.config.get("STEP_BACKFILL_DAYS", 45)
+    limit = min(join_date - timedelta(days=1), today - timedelta(days=backfill_days))
+    if challenge_start:
+        return max(challenge_start, limit)
+    return limit
+
+
 def effective_start_date(user):
     """The earliest date this user may have steps counted towards stats.
 
-    Users are allowed to backfill a single day before their join date (e.g.
-    someone who joins on 2 September can still log steps for 1 September),
-    but never earlier than that, and never before the challenge start date.
+    Normally the day before their join date (e.g. someone who joins on
+    2 September can still log steps for 1 September), never before the
+    challenge start date - but always extended back far enough to include
+    anything they legitimately backfilled inside the recording window.
     """
     challenge_start = current_app.config.get("CHALLENGE_START_DATE")
     join_date = user.date_joined.date() if user.date_joined else date.today()
-    backfill_limit = join_date - timedelta(days=1)
+    start = join_date - timedelta(days=1)
     if challenge_start:
-        return max(challenge_start, backfill_limit)
-    return backfill_limit
+        start = max(challenge_start, start)
+
+    if user.id is not None:
+        first = (
+            StepRecord.query.filter_by(user_id=user.id)
+            .order_by(StepRecord.date.asc())
+            .first()
+        )
+        if first and first.date < start:
+            start = first.date
+    return start
 
 
 def effective_end_date():

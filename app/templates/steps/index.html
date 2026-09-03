@@ -22,7 +22,7 @@
 </div>
 
 <div class="card" id="calendarCard"
-     data-editable-min="{{ stats.effective_start.isoformat() }}"
+     data-editable-min="{{ editable_min.isoformat() }}"
      data-today="{{ today().isoformat() }}">
   <div class="calendar-header">
     <a class="calendar-nav-btn" href="{{ url_for('steps.index', year=prev_year, month=prev_month) }}" aria-label="Previous month">‹</a>
