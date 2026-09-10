@@ -32,6 +32,8 @@ class Config:
     CHALLENGE_START_DATE = _parse_date(os.environ.get("CHALLENGE_START_DATE"))
     CHALLENGE_END_DATE = _parse_date(os.environ.get("CHALLENGE_END_DATE"))
     MAX_PLAUSIBLE_DAILY_STEPS = int(os.environ.get("MAX_PLAUSIBLE_DAILY_STEPS", "100000"))
+    # How many days back from today a user may still record/backfill steps for.
+    STEP_BACKFILL_DAYS = int(os.environ.get("STEP_BACKFILL_DAYS", "45"))
 
     REMEMBER_COOKIE_DAYS = int(os.environ.get("REMEMBER_COOKIE_DAYS", "35"))
     REMEMBER_COOKIE_DURATION = timedelta(days=REMEMBER_COOKIE_DAYS)

@@ -7,7 +7,7 @@ from flask_login import login_required, current_user
 
 from ..extensions import db
 from ..models import StepRecord
-from ..services.stats import effective_start_date, effective_end_date, compute_user_stats
+from ..services.stats import earliest_recordable_date, effective_end_date, compute_user_stats
 from ..utils.validation import parse_step_count
 
 steps_bp = Blueprint("steps", __name__)
@@ -16,7 +16,7 @@ steps_bp = Blueprint("steps", __name__)
 def _build_month_grid(user, year, month):
     """Return a list of weeks (each a list of 7 day-info dicts) for the given month."""
     today = date.today()
-    start_limit = effective_start_date(user)
+    start_limit = earliest_recordable_date(user, today)
 
     # Fetch just the records that could fall in this month's visible grid.
     cal = pycal.Calendar(firstweekday=0)  # Monday first
@@ -88,6 +88,7 @@ def index():
     return render_template(
         "steps/index.html",
         weeks=weeks,
+        editable_min=earliest_recordable_date(current_user, today),
         month_label=first_of_this_month.strftime("%B %Y"),
         year=year,
         month=month,
@@ -114,7 +115,7 @@ def save_step():
         return jsonify({"success": False, "error": "Invalid date."}), 400
 
     today = date.today()
-    start_limit = effective_start_date(current_user)
+    start_limit = earliest_recordable_date(current_user, today)
     if entry_date > today:
         return jsonify({"success": False, "error": "You can't record steps for a future date."}), 400
     if entry_date < start_limit:

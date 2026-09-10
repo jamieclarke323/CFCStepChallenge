@@ -1,6 +1,7 @@
 .venv/
 __pycache__/
 *.pyc
+.pytest_cache/
 instance/
 app/static/uploads/teams/*
 !app/static/uploads/teams/.gitkeep

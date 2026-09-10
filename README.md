@@ -14,8 +14,9 @@ or trusts a total.
 - Email/password authentication (Flask-Login) with persistent sessions -
   users stay logged in for **35 days** unless they explicitly log out.
 - **Record Steps**: monthly calendar, one step-record per user/day, edit
-  existing entries, future dates and pre-challenge dates blocked both in the
-  UI and on the server.
+  existing entries, and a rolling **45-day** backfill window so people who
+  join late can enter steps they've already walked. Future dates and
+  pre-challenge dates are blocked both in the UI and on the server.
 - **My Progress**: total/avg-per-day/week/month, a daily chart, and
   weekly/monthly breakdown tables with improving/declining trend indicators.
 - **My Team**: team overview, ranking, per-member stats table, team charts,
@@ -85,6 +86,7 @@ when `FLASK_ENV=production`).
 | `CHALLENGE_NAME` | Shown in the nav bar and page titles |
 | `CHALLENGE_START_DATE` | Steps can't be recorded before this date |
 | `CHALLENGE_END_DATE` | Optional end date for "days elapsed" calculations |
+| `STEP_BACKFILL_DAYS` | How many days back steps can still be recorded (default 45) |
 | `MAX_PLAUSIBLE_DAILY_STEPS` | Upper bound for a single day's step entry |
 | `REMEMBER_COOKIE_DAYS` | Login persistence length (requirement: ≥ 35) |
 | `MAX_UPLOAD_MB` | Max team image upload size |
@@ -131,6 +133,7 @@ run.py / wsgi.py         # Dev / production entry points
 - [x] Session persists for 35 days (`Set-Cookie ... Expires=...`)
 - [x] Record steps for today; edit an existing day's steps (no duplicate row)
 - [x] Future dates and pre-challenge-start dates are not selectable/saveable
+- [x] A late joiner can backfill any date within the last 45 days (inclusive)
 - [x] Validation: negative, non-integer, and implausibly large step counts rejected
 - [x] Daily/weekly/monthly stats and charts match recorded data
 - [x] Team stats, ranking, member list, and name/image editing
