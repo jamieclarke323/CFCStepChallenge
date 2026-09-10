@@ -1,11 +1,11 @@
 {% extends "base.html" %}
-{% block title %}My Progress - {{ challenge_name() }}{% endblock %}
+{% block title %}{{ 'My Progress' if is_own_progress else viewed_user.display_name ~ "'s Progress" }} - {{ challenge_name() }}{% endblock %}
 {% block content %}
 
 <div class="card">
-  <h1>My Progress</h1>
+  <h1>{{ 'My Progress' if is_own_progress else viewed_user.display_name ~ "'s Progress" }}</h1>
   <p class="hint">
-    {% if my_rank %}You're currently <strong>#{{ my_rank }}</strong> of {{ total_participants }} participants.{% endif %}
+    {% if my_rank %}{{ 'You\'re' if is_own_progress else viewed_user.display_name ~ ' is' }} currently <strong>#{{ my_rank }}</strong> of {{ total_participants }} participants.{% endif %}
   </p>
 </div>
 
@@ -30,8 +30,8 @@
 
 <div class="card">
   <p class="hint">
-    "Active day/week/month" averages only count periods where you actually logged steps, so gaps
-    aren't silently treated as zero. For reference, your average across every calendar day since you
+    "Active day/week/month" averages only count periods where {{ 'you' if is_own_progress else 'they' }} actually logged steps, so gaps
+    aren't silently treated as zero. For reference, {{ 'your' if is_own_progress else 'their' }} average across every calendar day since {{ 'you' if is_own_progress else 'they' }}
     joined (gaps counted as zero) is <strong>{{ stats.avg_per_calendar_day | avg }}</strong> steps/day,
     over {{ stats.calendar_days_elapsed }} calendar days vs {{ stats.active_days }} days actually recorded.
   </p>

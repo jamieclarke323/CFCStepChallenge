@@ -34,7 +34,7 @@
           {{ row.team_total_steps | num }} total steps · {{ row.member_count }} member{{ 's' if row.member_count != 1 }}
         </div>
         <div class="lb-members">
-          {% for m in row.member_stats %}<strong>{{ m.user.display_name }}</strong>{{ ' · ' if not loop.last }}{% endfor %}
+          {% for m in row.member_stats %}<a href="{{ url_for('progress.view', user_id=m.user.id) }}"><strong>{{ m.user.display_name }}</strong></a>{{ ' · ' if not loop.last }}{% endfor %}
         </div>
       </div>
       <div class="lb-team-average">{{ row.team_avg_per_active_day | avg }} avg/day</div>
@@ -49,7 +49,7 @@
     <div class="lb-indiv-row {{ 'is-me' if row.user.id == current_user.id }}">
       <div class="lb-rank {{ 'top3' if row.rank <= 3 }}" style="width:30px;">#{{ row.rank }}</div>
       <div>
-        <div class="lb-indiv-name">{{ row.user.display_name }}{{ ' (you)' if row.user.id == current_user.id }}</div>
+        <div class="lb-indiv-name"><a href="{{ url_for('progress.view', user_id=row.user.id) }}">{{ row.user.display_name }}</a>{{ ' (you)' if row.user.id == current_user.id }}</div>
         <div class="lb-indiv-team">{{ row.user.team.name if row.user.team else 'No team' }}</div>
       </div>
       <div class="lb-indiv-total">

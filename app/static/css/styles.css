@@ -405,6 +405,8 @@ table.data-table tr.is-me { background: #fff3ec; }
 .lb-indiv-row:last-child { border-bottom: none; }
 .lb-indiv-row.is-me { background: #fff3ec; border-radius: var(--radius); }
 .lb-indiv-name { font-weight: 700; }
+.lb-indiv-name a, .lb-members a { color: inherit; text-decoration: underline; text-decoration-color: var(--color-border); }
+.lb-indiv-name a:hover, .lb-members a:hover { text-decoration-color: currentColor; }
 .lb-indiv-team { color: var(--color-text-muted); font-size: 0.78rem; }
 .lb-indiv-total { margin-left: auto; text-align: right; font-weight: 800; }
 .lb-indiv-avg { color: var(--color-text-muted); font-size: 0.75rem; }
