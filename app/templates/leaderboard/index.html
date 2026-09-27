@@ -14,12 +14,20 @@
   <label>Month:
     <input type="month" name="month" value="{{ selected_month or '' }}">
   </label>
+  {% if view == 'individuals' %}
+  <label>Rank by:
+    <select name="sort">
+      <option value="total" {% if sort == 'total' %}selected{% endif %}>Total steps</option>
+      <option value="average" {% if sort == 'average' %}selected{% endif %}>Average daily steps</option>
+    </select>
+  </label>
+  {% endif %}
   <button class="btn" type="submit">Apply</button>
 </form>
 
 <div class="lb-toggle">
-  <a href="{{ url_for('leaderboard.index', view='teams', period=period, month=selected_month) }}" class="{{ 'active' if view == 'teams' }}">Teams</a>
-  <a href="{{ url_for('leaderboard.index', view='individuals', period=period, month=selected_month) }}" class="{{ 'active' if view == 'individuals' }}">Individuals</a>
+  <a href="{{ url_for('leaderboard.index', view='teams', period=period, month=selected_month, sort=sort) }}" class="{{ 'active' if view == 'teams' }}">Teams</a>
+  <a href="{{ url_for('leaderboard.index', view='individuals', period=period, month=selected_month, sort=sort) }}" class="{{ 'active' if view == 'individuals' }}">Individuals</a>
 </div>
 
 {% if view == 'teams' %}

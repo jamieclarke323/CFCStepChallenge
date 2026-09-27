@@ -15,6 +15,9 @@ def index():
     view = request.args.get("view", "teams")
     if view not in ("teams", "individuals"):
         view = "teams"
+    sort = request.args.get("sort", "total")
+    if sort not in ("total", "average"):
+        sort = "total"
 
     # The competition is scored monthly; default to the current calendar month.
     period = request.args.get("period", "month")
@@ -31,7 +34,9 @@ def index():
             year, month = date.today().year, date.today().month
 
     team_rankings = get_team_rankings(period=period, year=year, month=month)
-    individual_rankings = get_individual_rankings(period=period, year=year, month=month)
+    individual_rankings = get_individual_rankings(
+        period=period, year=year, month=month, sort=sort
+    )
 
     return render_template(
         "leaderboard/index.html",
@@ -40,4 +45,5 @@ def index():
         individual_rankings=individual_rankings,
         period=period,
         selected_month=month_str,
+        sort=sort,
     )

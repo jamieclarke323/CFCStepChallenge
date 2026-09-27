@@ -251,8 +251,8 @@ def _apply_team_multiplier(row):
     return row
 
 
-def get_individual_rankings(period=None, year=None, month=None):
-    """Return users ranked by total steps, with the tie-break rule applied.
+def get_individual_rankings(period=None, year=None, month=None, sort="total"):
+    """Return users ranked by total or average steps, with tie-breaks applied.
 
     If `period` == 'month' and `year`/`month` are provided, compute totals
     and averages only for that calendar month. Otherwise falls back to the
@@ -286,11 +286,21 @@ def get_individual_rankings(period=None, year=None, month=None):
             stats = compute_user_stats(u)
             rows.append({**stats, "user": u})
 
-    rows.sort(
-        key=lambda r: _tie_break_key(
-            r["total_steps"], r["avg_per_active_day"], r["user"].date_joined, r["user"].id
+    if sort == "average":
+        rows.sort(
+            key=lambda r: (
+                -r["avg_per_active_day"],
+                -r["total_steps"],
+                r["user"].date_joined,
+                r["user"].id,
+            )
         )
-    )
+    else:
+        rows.sort(
+            key=lambda r: _tie_break_key(
+                r["total_steps"], r["avg_per_active_day"], r["user"].date_joined, r["user"].id
+            )
+        )
     for i, r in enumerate(rows, start=1):
         r["rank"] = i
     return rows
